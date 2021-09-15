@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <title>Kasih judul di sini</title>
+    <style>
+      /* Kasih CSS di sini */
+      * {
+        box-sizing: border-box;
+      }
+      #data-hasil {
+
+      }
+      .judul {
+
+      }
+
+      .tabel-hasil {
+
+      }
+
+      #hasil-akar {
+
+      }
+      /* dan seterusnya */
+    </style>
+  </head>
+  <body>
+    <main id="main">
+      <h1>Pencari Root</h1>
+      <h2>Menggunakan Metode Newton-Raphson atau Secant</h2>
+      <form id="form">
+        <div>
+          <label for="fungsi">Fungsi</label>
+          <input id="fungsi" name="fungsi" type="text" />
+        </div>
+        <div>
+          <label for="turunan-fungsi">Turunan Fungsi</label>
+          <input id="turunan-fungsi" name="turunan-fungsi" type="text" />
+        </div>
+        <div>
+          <label for="x-min-1">X<sub>-1</sub></label>
+          <input id="x-min-1" name="x-min-1 type="number" step="any" />
+        </div>
+        <div>
+          <label for="x-nol">X<sub>0</sub></label>
+          <input id="x-nol" name="x-nol" type="number" step="any" />
+        </div>
+        <div>
+          <label for="galat">Galat</label>
+          <input
+            id="galat"
+            name="galat"
+            type="number"
+            step="any"
+            placeholder="Default 0.001"
+          />
+        </div>
+        <div>
+          <label for="presisi">Presisi</label>
+          <input id="presisi" name="presisi" type="number" step="any" />
+        </div>
+        <div>
+          <label for="iterasi">Iterasi</label>
+          <input
+            id="iterasi"
+            name="iterasi"
+            type="number"
+            step="any"
+            placeholder="Default 40"
+          />
+        </div>
+        <button type="submit">Submit</button>
+      </form>
+    </main>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.4.4/math.min.js"
+      crossorigin="anonymous"
+      type="text/javascript"
+    ></script>
+    <script>
+      let fungsi,
+        turunanFungsi,
+        xMinSatu,
+        xNol,
+        galat,
+        presisi,
+        iterasi,
+        metode;
+
+      function cetakHasil(hasil, judul, tabelHasil) {
+        judul.setAttribute("class", "judul");
+        tabelHasil.setAttribute("class", "tabel-hasil");
+
+        let dataHasil = document.getElementById("data-hasil");
+        dataHasil.appendChild(judul);
+        dataHasil.appendChild(tabelHasil);
+
+        let hasilAkar = document.createElement("h3");
+        hasilAkar.setAttribute("id", "hasil-akar");
+        hasilAkar.innerText = `Hasil akar adalah ${
+          presisi
+            ? Number(hasil[hasil.length - 1].xSatu).toPrecision(presisi)
+            : hasil[hasil.length - 1].xSatu
+        }`;
+        dataHasil.appendChild(hasilAkar);
+      }
+
+      function newtonRaphson() {
+        let hasil = [];
+        let fungsiXNol, turunanFungsiXNol, xSatu, galatRelatif;
+        let langkah = 1;
+
+        do {
+          try {
+            fungsiXNol = fungsi.evaluate({ x: xNol });
+            turunanFungsiXNol = turunanFungsi.evaluate({ x: xNol });
+            xSatu = xNol - fungsiXNol / turunanFungsiXNol;
+          } catch (e) {
+            alert(e);
+            return;
+          }
+          try {
+            galatRelatif = math.abs((xSatu - xNol) / xSatu);
+          } catch (e) {
+            alert(e);
+            return;
+          }
+          hasil.push({
+            langkah: langkah,
+            xNol: xNol,
+            xSatu: xSatu,
+            fungsiXNol: fungsiXNol,
+            turunanFungsiXNol: turunanFungsiXNol,
+            galatRelatif: galatRelatif,
+          });
+          xNol = xSatu;
+          langkah++;
+        } while (langkah <= iterasi && galat <= galatRelatif);
+
+        let judul = document.createElement("h3");
+        judul.innerHTML = `Hasil<br>Menggunakan Metode Newton-Raphson`;
+
+        let tabelHasil = document.createElement("tabel-hasil");
+        let badanTabelHasil = document.createElement("tbody");
+        badanTabelHasil.innerHTML = `
+            <tr>
+                <th>Langkah</th>
+                <th>x<sub>nol</sub></th>
+                <th>f(x<sub>0</sub>)</th>
+                <th>f'(x<sub>0</sub>)</th>
+                <th>x<sub>1</sub></th>
+                <th>| ε<sub>t</sub> |</th>
+            </tr>
+        `.trim();
+        hasil.map(function (hsl) {
+          let itemTabelHasil = document.createElement("tr");
+          itemTabelHasil.innerHTML = `
+                <td>${hsl.langkah}</td>
+                <td>${
+                  presisi ? Number(hsl.xNol).toPrecision(presisi) : hsl.xNol
+                }</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.fungsiXNol).toPrecision(presisi)
+                    : hsl.fungsiXNol
+                }</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.turunanFungsiXNol).toPrecision(presisi)
+                    : hsl.turunanFungsiXNol
+                }</td>
+                <td>${
+                  presisi ? Number(hsl.xSatu).toPrecision(presisi) : hsl.xSatu
+                }</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.galatRelatif).toPrecision(presisi)
+                    : hsl.galatRelatif
+                }</td>
+            `;
+          badanTabelHasil.appendChild(itemTabelHasil);
+        });
+        tabelHasil.appendChild(badanTabelHasil);
+
+        cetakHasil(hasil, judul, tabelHasil);
+      }
+
+      function secant() {
+        let hasil = [];
+        let fungsiXMinSatu, fungsiXNol, xSatu, galatRelatif;
+        let langkah = 1;
+
+        do {
+          try {
+            fungsiXMinSatu = fungsi.evaluate({ x: xMinSatu });
+            fungsiXNol = fungsi.evaluate({ x: xNol });
+            xSatu =
+              xNol -
+              (fungsiXNol * (xMinSatu - xNol)) / (fungsiXMinSatu - fungsiXNol);
+          } catch (e) {
+            alert(e);
+            return;
+          }
+          try {
+            galatRelatif = math.abs((xSatu - xNol) / xSatu);
+          } catch (e) {
+            alert(e);
+            return;
+          }
+          hasil.push({
+            langkah: langkah,
+            xMinSatu: xMinSatu,
+            fungsiXMinSatu: fungsiXMinSatu,
+            xNol: xNol,
+            fungsiXNol: fungsiXNol,
+            xSatu: xSatu,
+            galatRelatif: galatRelatif,
+          });
+          xMinSatu = xNol;
+          xNol = xSatu;
+          langkah++;
+        } while (langkah <= iterasi && galat <= galatRelatif);
+
+        let judul = document.createElement("h3");
+        judul.innerHTML = `Hasil<br>Menggunakan Metode Secant`;
+
+        let tabelHasil = document.createElement("tabel-hasil");
+        let badanTabelHasil = document.createElement("tbody");
+        badanTabelHasil.innerHTML = `
+            <tr>
+                <th>Langkah</th>
+                <th>x<sub>-1</sub></th>
+                <th>f(x<sub>-1</sub>)</th>
+                <th>x<sub>0</sub></th>
+                <th>f(x<sub>0</sub>)</th>
+                <th>x<sub>1</sub></th>
+                <th>| ε<sub>t</sub> |</th>
+            </tr>
+        `.trim();
+        hasil.map(function (hsl) {
+          let itemTabelHasil = document.createElement("tr");
+          itemTabelHasil.innerHTML = `
+                <td>${hsl.langkah}</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.xMinSatu).toPrecision(presisi)
+                    : hsl.xMinSatu
+                }</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.fungsiXMinSatu).toPrecision(presisi)
+                    : hsl.fungsiXMinSatu
+                }</td>
+                <td>${
+                  presisi ? Number(hsl.xNol).toPrecision(presisi) : hsl.xNol
+                }</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.fungsiXNol).toPrecision(presisi)
+                    : hsl.fungsiXNol
+                }</td>
+                <td>${
+                  presisi ? Number(hsl.xSatu).toPrecision(presisi) : hsl.xSatu
+                }</td>
+                <td>${
+                  presisi
+                    ? Number(hsl.galatRelatif).toPrecision(presisi)
+                    : hsl.galatRelatif
+                }</td>
+            `;
+          badanTabelHasil.appendChild(itemTabelHasil);
+        });
+        tabelHasil.appendChild(badanTabelHasil);
+
+        cetakHasil(hasil, judul, tabelHasil);
+      }
+
+      function modifikasiSecant() {
+        let hasil = [];
+        let fungsiXNol,
+          xNolTambahDeltaXNol,
+          fungsixNolTambahDeltaXNol,
+          xSatu,
+          galatRelatif;
+        let langkah = 1;
+
+        do {
+          try {
+            fungsiXNol = fungsi.evaluate({ x: xNol });
+            xNolTambahDeltaXNol = Number(xNol) + 0.01 * Number(xNol);
+            fungsixNolTambahDeltaXNol = fungsi.evaluate({
+              x: xNolTambahDeltaXNol,
+            });
+            xSatu =
+              xNol -
+              (0.01 * xNol * fungsiXNol) /
+                (fungsixNolTambahDeltaXNol - fungsiXNol);
+          } catch (e) {
+            alert(e);
+            return;
+          }
+          try {
+            galatRelatif = math.abs((xSatu - xNol) / xSatu);
+          } catch (e) {
+            alert(e);
+            return;
+          }
+          hasil.push({
+            langkah: langkah,
+            xNol: xNol,
+            fungsiXNol: fungsiXNol,
+            xNolTambahDeltaXNol: xNolTambahDeltaXNol,
+            fungsixNolTambahDeltaXNol: fungsixNolTambahDeltaXNol,
+            xSatu: xSatu,
+            galatRelatif: galatRelatif,
+          });
+          xNol = xSatu;
+          langkah++;
+        } while (langkah <= iterasi && galat <= galatRelatif);
+
+        let judul = document.createElement("h3");
+        judul.innerHTML = `Hasil<br>Menggunakan Metode Modifikasi Secant`;
+
+        let tabelHasil = document.createElement("tabel-hasil");
+        let badanTabelHasil = document.createElement("tbody");
+        badanTabelHasil.innerHTML = `
+            <tr>
+                <th>Langkah</th>
+                <th>x<sub>0</sub></th>
+                <th>f(x<sub>0</sub>)</th>
+                <th>x<sub>0</sub> + 𝛿x<sub>0</sub></th>
+                <th>f(x<sub>0</sub> + 𝛿x<sub>0</sub>)</th>
+                <th>x<sub>1</sub></th>
+                <th>| ε<sub>t</sub> |</th>
+            </tr>
+        `.trim();
+        hasil.map(function (hsl) {
+          let itemTabelHasil = document.createElement("tr");
+          itemTabelHasil.innerHTML = `
+                <td>${hsl.langkah}</td>
+                <td>
+                  ${presisi ? Number(hsl.xNol).toPrecision(presisi) : hsl.xNol}
+                </td>
+                <td>
+                  ${
+                    presisi
+                      ? Number(hsl.fungsiXNol).toPrecision(presisi)
+                      : hsl.fungsiXNol
+                  }
+                </td>
+                <td>
+                  ${
+                    presisi
+                      ? Number(hsl.xNolTambahDeltaXNol).toPrecision(presisi)
+                      : hsl.xNolTambahDeltaXNol
+                  }
+                </td>
+                <td>
+                  ${
+                    presisi
+                      ? Number(hsl.fungsixNolTambahDeltaXNol).toPrecision(
+                          presisi
+                        )
+                      : hsl.fungsixNolTambahDeltaXNol
+                  }
+                </td>
+                <td>
+                  ${
+                    presisi ? Number(hsl.xSatu).toPrecision(presisi) : hsl.xSatu
+                  }
+                </td>
+                <td>
+                  ${
+                    presisi
+                      ? Number(hsl.galatRelatif).toPrecision(presisi)
+                      : hsl.galatRelatif
+                  }
+                </td>
+            `;
+          badanTabelHasil.appendChild(itemTabelHasil);
+        });
+        tabelHasil.appendChild(badanTabelHasil);
+
+        cetakHasil(hasil, judul, tabelHasil);
+      }
+
+      let form = document.getElementById("form");
+      form.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        let dataHasil = document.getElementById("data-hasil");
+        if (dataHasil !== null) {
+          dataHasil.parentNode.removeChild(dataHasil);
+        }
+        dataHasil = document.createElement("div");
+        dataHasil.setAttribute("id", "data-hasil");
+        document.getElementById("main").appendChild(dataHasil);
+
+        fungsi = document.getElementById("fungsi").value;
+        turunanFungsi = document.getElementById("turunan-fungsi").value;
+        xMinSatu = document.getElementById("x-min-1").value;
+        xNol = document.getElementById("x-nol").value;
+        galat = document.getElementById("galat").value;
+        if (galat == "") {
+          galat = 0.001;
+        }
+        presisi = document.getElementById("presisi").value;
+        iterasi = document.getElementById("iterasi").value;
+        if (iterasi == "") {
+          iterasi = 40;
+        }
+
+        fungsi = math.parse(fungsi);
+
+        if (xMinSatu != "") {
+          metode = "secant";
+        } else {
+          metode = "newton";
+          if (turunanFungsi == "") {
+            try {
+              let x = math.parse("x");
+              turunanFungsi = math.derivative(fungsi, x);
+            } catch (e) {
+              alert(e);
+            }
+            if (turunanFungsi == undefined) {
+              metode = "modifikasi-secant";
+            }
+          } else {
+            try {
+              turunanFungsi = math.parse(turunanFungsi);
+            } catch (e) {
+              alert(e);
+            }
+            if (turunanFungsi == null) {
+              metode = "modifikasi-secant";
+            }
+          }
+        }
+
+        if (metode == "newton") {
+          newtonRaphson();
+          return;
+        }
+        if (metode == "secant") {
+          secant();
+          return;
+        }
+        if (metode == "modifikasi-secant") {
+          modifikasiSecant();
+          return;
+        }
+      });
+    </script>
+  </body>
+</html>
